@@ -1,0 +1,345 @@
+{
+  "query": "software repository auditing security supply chain",
+  "year_range": [
+    2018,
+    2026
+  ],
+  "sources_used": [
+    "arxiv",
+    "openalex",
+    "semantic_scholar"
+  ],
+  "total_candidates": 129,
+  "papers": [
+    {
+      "title": "Operationalizing Research Software for Supply Chain Security",
+      "authors": [
+        "Kelechi G. Kalu",
+        "Soham Rattan",
+        "Taylor R. Schorlemmer",
+        "George K. Thiruvathukal",
+        "Jeffrey C. Carver",
+        "James C. Davis"
+      ],
+      "year": 2026,
+      "venue": "ICSE-JAWS 2026",
+      "abstract": "Empirical studies of research software are hard to compare because the literature operationalizes ``research software'' inconsistently. Motivated by the research software supply chain (RSSC) and its security risks, we introduce an RSSC-oriented taxonomy that makes scope and operational boundaries explicit for empirical research software security studies.\n  We conduct a targeted scoping review of recent repository mining and dataset construction studies, extracting each work's definition, inclusion criteria, unit of analysis, and identification heuristics. We synthesize these into a harmonized taxonomy and a mapping that translates prior approaches into shared taxonomy dimensions. We operationalize the taxonomy on a large community-curated corpus from the Research Software Encyclopedia (RSE), producing an annotated dataset, a labeling codebook, and a reproducible labeling pipeline. Finally, we apply OpenSSF Scorecard as a preliminary security analysis to show how repository-centric security signals differ across taxonomy-defined clusters and why taxonomy-aware stratification is necessary for interpreting RSSC security measurements.",
+      "doi": "10.48550/arxiv.2601.20980",
+      "arxiv_id": "2601.20980",
+      "url": "http://arxiv.org/abs/2601.20980v1",
+      "pdf_url": "https://arxiv.org/pdf/2601.20980v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv",
+        "semantic_scholar"
+      ],
+      "score": 0.79959479111342,
+      "downloaded_to": null
+    },
+    {
+      "title": "Agentic AI for Autonomous Defense in Software Supply Chain Security: Beyond Provenance to Vulnerability Mitigation",
+      "authors": [
+        "Toqeer Ali Syed",
+        "Mohammad Riyaz Belgaum",
+        "Salman Jan",
+        "Asadullah Abdullah Khan",
+        "Saad Said Alqahtani"
+      ],
+      "year": 2025,
+      "venue": null,
+      "abstract": "The software supply chain attacks are becoming more and more focused on trusted development and delivery procedures, so the conventional post-build integrity mechanisms cannot be used anymore. The available frameworks like SLSA, SBOM and in toto are majorly used to offer provenance and traceability but do not have the capabilities of actively identifying and removing vulnerabilities in software production. The current paper includes an example of agentic artificial intelligence (AI) based on autonomous software supply chain security that combines large language model (LLM)-based reasoning, reinforcement learning (RL), and multi-agent coordination. The suggested system utilizes specialized security agents coordinated with the help of LangChain and LangGraph, communicates with actual CI/CD environments with the Model Context Protocol (MCP), and documents all the observations and actions in a blockchain security ledger to ensure integrity and auditing. Reinforcement learning can be used to achieve adaptive mitigation strategies that consider the balance between security effectiveness and the operational overhead, and LLMs can be used to achieve semantic vulnerability analysis, as well as explainable decisions. This framework is tested based on simulated pipelines, as well as, actual world CI/CD integrations on GitHub Actions and Jenkins, including injection attacks, insecure deserialization, access control violations, and configuration errors. Experimental outcomes indicate better detection accuracy, shorter mitigation latency and reasonable build-time overhead than rule-based, provenance only and RL only baselines. These results show that agentic AI can facilitate the transition to self defending, proactive software supply chains rather than reactive verification ones.",
+      "doi": null,
+      "arxiv_id": "2512.23480",
+      "url": "http://arxiv.org/abs/2512.23480v1",
+      "pdf_url": "https://arxiv.org/pdf/2512.23480v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.7412452534105283,
+      "downloaded_to": null
+    },
+    {
+      "title": "Wolves in the Repository: A Software Engineering Analysis of the XZ Utils Supply Chain Attack",
+      "authors": [
+        "Piotr Przymus",
+        "Thomas Durieux"
+      ],
+      "year": 2025,
+      "venue": "IEEE Working Conference on Mining Software Repositories",
+      "abstract": "The digital economy runs on Open Source Software (OSS), with an estimated 90% of modern applications containing open-source components. While this widespread adoption has revolutionized software development, it has also created critical security vulnerabilities, particularly in essential but underresourced projects. This paper examines a sophisticated attack on the XZ Utils project (CVE-2024-3094), where attackers exploited not just code, but the entire open-source development process to inject a backdoor into a fundamental Linux compression library. Our analysis reveals a new breed of supply chain attack that manipulates software engineering practices themselves - from community management to CI/CD configurations - to establish legitimacy and maintain long-term control. Through a comprehensive examination of GitHub events and development artifacts, we reconstruct the attack timeline, analyze the evolution of attacker tactics. Our findings demonstrate how attackers leveraged seemingly beneficial contributions to project infrastructure and maintenance to bypass traditional security measures. This work extends beyond traditional security analysis by examining how software engineering practices themselves can be weaponized, offering insights for protecting the open-source ecosystem.",
+      "doi": "10.1109/msr66628.2025.00026",
+      "arxiv_id": "2504.17473",
+      "url": "https://www.semanticscholar.org/paper/7f3cff0a22c028aaab62c035932f520f66175c08",
+      "pdf_url": "",
+      "citation_count": 12,
+      "sources": [
+        "semantic_scholar"
+      ],
+      "score": 0.6766199299476326,
+      "downloaded_to": null
+    },
+    {
+      "title": "SoK: Analysis of Software Supply Chain Security by Establishing Secure Design Properties",
+      "authors": [
+        "Chinenye Okafor",
+        "Taylor R. Schorlemmer",
+        "Santiago Torres-Arias",
+        "James C. Davis"
+      ],
+      "year": 2024,
+      "venue": null,
+      "abstract": "This paper systematizes knowledge about secure software supply chain patterns. It identifies four stages of a software supply chain attack and proposes three security properties crucial for a secured supply chain: transparency, validity, and separation. The paper describes current security approaches and maps them to the proposed security properties, including research ideas and case studies of supply chains in practice. It discusses the strengths and weaknesses of current approaches relative to known attacks and details the various security frameworks put out to ensure the security of the software supply chain. Finally, the paper highlights potential gaps in actor and operation-centered supply chain security techniques",
+      "doi": null,
+      "arxiv_id": "2406.10109",
+      "url": "http://arxiv.org/abs/2406.10109v1",
+      "pdf_url": "https://arxiv.org/pdf/2406.10109v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6732617796816315,
+      "downloaded_to": null
+    },
+    {
+      "title": "An LLM-based Quantitative Framework for Evaluating High-Stealthy Backdoor Risks in OSS Supply Chains",
+      "authors": [
+        "Zihe Yan",
+        "Kai Luo",
+        "Haoyu Yang",
+        "Yang Yu",
+        "Zhuosheng Zhang",
+        "Guancheng Li"
+      ],
+      "year": 2025,
+      "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "abstract": "In modern software development workflows, the open-source software supply chain significantly contributes to efficient and convenient engineering practices. With increasing system complexity, it has become a common practice to use open-source software as third-party dependencies. However, due to the lack of maintenance for underlying dependencies and insufficient community auditing, ensuring the security of source code and the legitimacy of repository maintainers has become a challenge, particularly in the context of high-stealth backdoor attacks such as the XZ-Util incident. To address these problems, we propose a fine-grained project evaluation framework for backdoor risk assessment in open-source software. Our evaluation framework models highly stealthy backdoor attacks from the attacker’s perspective and defines targeted metrics for each attack stage. Moreover, to overcome the limitations of static analysis in assessing the reliability of repository maintenance activities, such as irregular committer privilege escalation and insufficient review participation, we employ large language models (LLMs) to perform semantic evaluation of code repositories while avoiding reliance on manually crafted patterns. The effectiveness of our framework is validated on 66 high-priority packages in the Debian ecosystem, and the experimental results reveal that the current open-source software supply chain is exposed to a series of security risks.",
+      "doi": "10.48550/arxiv.2511.13341",
+      "arxiv_id": "2511.13341",
+      "url": "https://www.semanticscholar.org/paper/81d635343bdcb4307a90deb7bdaa6f1bcd95478b",
+      "pdf_url": "",
+      "citation_count": 0,
+      "sources": [
+        "semantic_scholar"
+      ],
+      "score": 0.6709530122236537,
+      "downloaded_to": null
+    },
+    {
+      "title": "Artemis: Defanging Software Supply Chain Attacks in Multi-repository Update Systems",
+      "authors": [
+        "Marina Moore",
+        "T. Kuppusamy",
+        "Justin Cappos"
+      ],
+      "year": 2023,
+      "venue": "Asia-Pacific Computer Systems Architecture Conference",
+      "abstract": "Modern software installation tools often use packages from more than one repository, presenting a unique set of security challenges. Such a configuration increases the risk of repository compromise and introduces attacks like dependency confusion and repository fallback. In this paper, we offer the first exploration of attacks that specifically target multiple repository update systems, and propose a unique defensive strategy we call articulated trust. Articulated trust is a principle that allows software installation tools to specify trusted developers and repositories for each package. To implement articulated trust, we built Artemis, a framework that introduces several new security techniques, such as per-package prioritization of repositories, multi-role delegations, multiple-repository consensus, and key pinning. These techniques allow for a greater diversity of trust relationships while eliminating the security risk of single points of failure. To evaluate Artemis, we examine attacks on software update systems from the Cloud Native Computing Foundation’s Catalog of Supply Chain Compromises, and find that the most secure configuration of Artemis can prevent all of them, compared to 14-59% for the best existing system. We also cite real-world deployments of Artemis that highlight its practicality. These include the JDF/Linux Foundation Uptane Standard that secures over-the-air updates for millions of automobiles, and TUF, which is used by many companies for secure software distribution.",
+      "doi": "10.1145/3627106.3627129",
+      "arxiv_id": null,
+      "url": "https://www.semanticscholar.org/paper/177f2f412434481f0b3534b854655d705de99c57",
+      "pdf_url": "",
+      "citation_count": 3,
+      "sources": [
+        "semantic_scholar"
+      ],
+      "score": 0.6682192682455522,
+      "downloaded_to": null
+    },
+    {
+      "title": "Macaron: A Logic-based Framework for Software Supply Chain Security Assurance",
+      "authors": [
+        "Behnaz Hassanshahi",
+        "Trong Nhan Mai",
+        "A. Michael",
+        "Benjamin Selwyn-Smith",
+        "Sophie Bates",
+        "Padmanabhan Krishnan"
+      ],
+      "year": 2023,
+      "venue": "SCORED@CCS",
+      "abstract": "Many software supply chain attacks exploit the fact that what is in a source code repository may not match the artifact that is actually deployed in one's system. This paper describes a logic-based framework that analyzes a software component and its dependencies to determine if they are built in a trustworthy fashion. The properties that are checked include the availability of build provenances and whether the build and deployment process of an artifact is tamper resistant. These properties are based on the open-source community efforts, such as SLSA, that enable an incremental approach to improve supply chain security. We evaluate our tool on the top-30 Java, Python, and npm open-source projects and show that the majority still do not produce provenances. Our evaluation also shows that a large number of open-source Java and Python projects do not have a transparent build platform to produce artifacts, which is a necessary requirement to increase the trust in the published artifacts. We show that our tool fills a gap in the current software supply chain security landscape, and by making it publicly available the open-source community can both benefit from and contribute to it.",
+      "doi": "10.1145/3605770.3625213",
+      "arxiv_id": null,
+      "url": "https://www.semanticscholar.org/paper/a54f133bf8287ae921a392302884b10cf448dac7",
+      "pdf_url": "",
+      "citation_count": 15,
+      "sources": [
+        "semantic_scholar"
+      ],
+      "score": 0.6673536398888673,
+      "downloaded_to": null
+    },
+    {
+      "title": "Establishing a Baseline of Software Supply Chain Security Task Adoption by Software Organizations",
+      "authors": [
+        "Laurie Williams",
+        "Sammy Migues"
+      ],
+      "year": 2025,
+      "venue": null,
+      "abstract": "Software supply chain attacks have increased exponentially since 2020. The primary attack vectors for supply chain attacks are through: (1) software components; (2) the build infrastructure; and (3) humans (a.k.a software practitioners). Software supply chain risk management frameworks provide a list of tasks that an organization can adopt to reduce software supply chain risk. Exhaustively adopting all the tasks of these frameworks is infeasible, necessitating the prioritized adoption of tasks. Software organizations can benefit from being guided in this prioritization by learning what tasks other teams have adopted. The goal of this study is to aid software development organizations in understanding the adoption of security tasks that reduce software supply chain risk through an interview study of software practitioners engaged in software supply chain risk management efforts. An interview study was conducted with 61 practitioners at nine software development organizations that have focused efforts on reducing software supply chain risk. The results of the interviews indicate that organizations had implemented the most adopted software tasks before the focus on software supply chain security. Therefore, their implementation in organizations is more mature. The tasks that mitigate the novel attack vectors through software components and the build infrastructure are in the early stages of adoption. Adoption of these tasks should be prioritized.",
+      "doi": null,
+      "arxiv_id": "2509.08083",
+      "url": "http://arxiv.org/abs/2509.08083v1",
+      "pdf_url": "https://arxiv.org/pdf/2509.08083v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6664807602161243,
+      "downloaded_to": null
+    },
+    {
+      "title": "Software Supply Chain Security of Web3",
+      "authors": [
+        "Martin Monperrus"
+      ],
+      "year": 2025,
+      "venue": "Proceedings of 32nd Asia-Pacific Software Engineering Conference (APSEC), 2025",
+      "abstract": "Web3 applications, built on blockchain technology, manage billions of dollars in digital assets through decentralized applications (dApps) and smart contracts. These systems rely on complex, software supply chains that introduce significant security vulnerabilities. This paper examines the software supply chain security challenges unique to the Web3 ecosystem, where traditional Web2 software supply chain problems intersect with the immutable and high-stakes nature of blockchain technology. We analyze the threat landscape and propose mitigation strategies to strengthen the security posture of Web3 systems.",
+      "doi": "10.1109/APSEC66846.2025.00012",
+      "arxiv_id": "2511.12274",
+      "url": "http://arxiv.org/abs/2511.12274v1",
+      "pdf_url": "https://arxiv.org/pdf/2511.12274v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv",
+        "semantic_scholar"
+      ],
+      "score": 0.6656731236964071,
+      "downloaded_to": null
+    },
+    {
+      "title": "Software Supply Chain Smells: Lightweight Analysis for Secure Dependency Management",
+      "authors": [
+        "Larissa Schmid",
+        "Diogo Gaspar",
+        "Raphina Liu",
+        "Sofia Bobadilla",
+        "Benoit Baudry",
+        "Martin Monperrus"
+      ],
+      "year": 2026,
+      "venue": null,
+      "abstract": "Modern software systems heavily rely on third-party dependencies, making software supply chain security a critical concern. We introduce the concept of software supply chain smells as structural indicators that signal potential security risks. We design and evaluate Dirty-Waters, a novel tool for detecting such smells in the supply chains of software packages. Through interviews with practitioners, we show that our proposed smells align with real-world concerns and capture signals considered valuable. A quantitative study of popular packages in the Maven and NPM ecosystems reveals that while smells are prevalent in both, they differ significantly across ecosystems, with traceability and signing issues dominating in Maven and most smells being rare in NPM, due to strong registry-level guarantees. Software supply chain smells support developers and organizations in making informed decisions and improving their software supply chain security posture.",
+      "doi": null,
+      "arxiv_id": "2603.24282",
+      "url": "http://arxiv.org/abs/2603.24282v2",
+      "pdf_url": "https://arxiv.org/pdf/2603.24282v2",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6639988874743041,
+      "downloaded_to": null
+    },
+    {
+      "title": "PyPitfall: Dependency Chaos and Software Supply Chain Vulnerabilities in Python",
+      "authors": [
+        "Jacob Mahon",
+        "Chenxi Hou",
+        "Zhihao Yao"
+      ],
+      "year": 2025,
+      "venue": "BigData Congress [Services Society]",
+      "abstract": "Python software development heavily relies on thirdparty packages. Direct and transitive dependencies create a labyrinth of software supply chains. While it is convenient to reuse code, vulnerabilities within these dependency chains can propagate through dependencies, potentially affecting downstream packages and applications. PyPI, the official Python package repository, hosts many packages and lacks a comprehensive analysis of the prevalence of vulnerable dependencies. This paper introduces PyPitfall, a quantitative analysis of vulnerable dependencies across the PyPI ecosystem. We analyzed the dependency structures of 378,573 PyPI packages and identified 4,655 packages that explicitly require at least one known-vulnerable version and 141,044 packages that permit vulnerable versions within specified ranges. By characterizing the ecosystem-wide dependency landscape and the security impact of transitive dependencies, we aim to raise awareness of Python software supply chain security.",
+      "doi": "10.1109/bigdata66926.2025.11401557",
+      "arxiv_id": "2507.18075",
+      "url": "https://www.semanticscholar.org/paper/3b87d8a274e3b3ba479a98c541e8db0f9749e318",
+      "pdf_url": "",
+      "citation_count": 3,
+      "sources": [
+        "semantic_scholar"
+      ],
+      "score": 0.6574790849290766,
+      "downloaded_to": null
+    },
+    {
+      "title": "ESAA-Security: An Event-Sourced, Verifiable Architecture for Agent-Assisted Security Audits of AI-Generated Code",
+      "authors": [
+        "Elzo Brito dos Santos Filho"
+      ],
+      "year": 2026,
+      "venue": null,
+      "abstract": "AI-assisted software generation has increased development speed, but it has also amplified a persistent engineering problem: systems that are functionally correct may still be structurally insecure. In practice, prompt-based security review with large language models often suffers from uneven coverage, weak reproducibility, unsupported findings, and the absence of an immutable audit trail. The ESAA architecture addresses a related governance problem in agentic software engineering by separating heuristic agent cognition from deterministic state mutation through append-only events, constrained outputs, and replay-based verification. This paper presents ESAA-Security, a domain-specific specialization of ESAA for agent-assisted security auditing of software repositories, with particular emphasis on AI-generated or AI-modified code. ESAA-Security structures auditing as a governed execution pipeline with four phases reconnaissance, domain audit execution, risk classification, and final reporting and operationalizes the workflow into 26 tasks, 16 security domains, and 95 executable checks. The framework produces structured check results, vulnerability inventories, severity classifications, risk matrices, remediation guidance, executive summaries, and a final markdown/JSON audit report. The central idea is that security review should not be modeled as a free-form conversation with an LLM, but as an evidence-oriented audit process governed by contracts and events. In ESAA-Security, agents emit structured intentions under constrained protocols; the orchestrator validates them, persists accepted outputs to an append-only log, reprojects derived views, and verifies consistency through replay and hashing. The result is a traceable, reproducible, and risk-oriented audit architecture whose final report is auditable by construction.",
+      "doi": null,
+      "arxiv_id": "2603.06365",
+      "url": "http://arxiv.org/abs/2603.06365v1",
+      "pdf_url": "https://arxiv.org/pdf/2603.06365v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6458238914567415,
+      "downloaded_to": null
+    },
+    {
+      "title": "S3C2 Summit 2024-09: Industry Secure Software Supply Chain Summit",
+      "authors": [
+        "Imranur Rahman",
+        "Yasemin Acar",
+        "Michel Cukier",
+        "William Enck",
+        "Christian Kastner",
+        "Alexandros Kapravelos",
+        "Dominik Wermke",
+        "Laurie Williams"
+      ],
+      "year": 2025,
+      "venue": null,
+      "abstract": "While providing economic and software development value, software supply chains are only as strong as their weakest link. Over the past several years, there has been an exponential increase in cyberattacks, specifically targeting vulnerable links in critical software supply chains. These attacks disrupt the day-to-day functioning and threaten the security of nearly everyone on the internet, from billion-dollar companies and government agencies to hobbyist open-source developers. The ever-evolving threat of software supply chain attacks has garnered interest from the software industry and the US government in improving software supply chain security.\n  On September 20, 2024, three researchers from the NSF-backed Secure Software Supply Chain Center (S3C2) conducted a Secure Software Supply Chain Summit with a diverse set of 12 practitioners from 9 companies. The goals of the Summit were to: (1) to enable sharing between individuals from different companies regarding practical experiences and challenges with software supply chain security, (2) to help form new collaborations, (3) to share our observations from our previous summits with industry, and (4) to learn about practitioners' challenges to inform our future research direction. The summit consisted of discussions of six topics relevant to the companies represented, including updating vulnerable dependencies, component and container choice, malicious commits, building infrastructure, large language models, and reducing entire classes of vulnerabilities.",
+      "doi": null,
+      "arxiv_id": "2505.10538",
+      "url": "http://arxiv.org/abs/2505.10538v1",
+      "pdf_url": "https://arxiv.org/pdf/2505.10538v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.644291456555908,
+      "downloaded_to": null
+    },
+    {
+      "title": "Building a Secure Software Supply Chain with GNU Guix",
+      "authors": [
+        "Ludovic Courtès"
+      ],
+      "year": 2022,
+      "venue": "The Art, Science, and Engineering of Programming, 2023, Vol. 7, Issue 1, Article 1",
+      "abstract": "The software supply chain is becoming a widespread analogy to designate the series of steps taken to go from source code published by developers to executables running on the users? computers. A security vulnerability in any of these steps puts users at risk, and evidence shows that attacks on the supply chain are becoming more common. The consequences of an attack on the software supply chain can be tragic in a society that relies on many interconnected software systems, and this has led research interest as well as governmental incentives for supply chain security to rise.\n  GNU Guix is a software deployment tool and software distribution that supports provenance tracking, reproducible builds, and reproducible software environments. Unlike many software distributions, it consists exclusively of source code: it provides a set of package definitions that describe how to build code from source. Together, these properties set it apart from many deployment tools that center on the distribution of binaries.\n  This paper focuses on one research question: how can Guix and similar systems allow users to securely update their software? Guix source code is distributed using the Git version control system; updating Guix-installed software packages means, first, updating the local copy of the Guix source code. Prior work on secure software updates focuses on systems very different from Guix -- systems such as Debian, Fedora, or PyPI where updating consists in fetching metadata about the latest binary artifacts available -- and is largely inapplicable in the context of Guix. By contrast, the main threats for Guix are attacks on its source code repository, which could lead users to run inauthentic code or to downgrade their system. Deployment tools that more closely resemble Guix, from Nix to Portage, either lack secure update mechanisms or suffer from shortcomings.\n  Our main contribution is a model and tool to authenticate new Git revisions. We further show how, building on Git semantics, we build protections against downgrade attacks and related threats. We explain implementation choices. This work has been deployed in production two years ago, giving us insight on its actual use at scale every day. The Git checkout authentication at its core is applicable beyond the specific use case of Guix, and we think it could benefit to developer teams that use Git.\n   As attacks on the software supply chain appear, security research is now looking at every link of the supply chain. Secure updates are one important aspect of the supply chain, but this paper also looks at the broader context: how Guix models and implements the supply chain, from upstream source code to binaries running on computers. While much recent work focuses on attestation -- certifying each link of the supply chain -- Guix takes a more radical approach: enabling independent verification of each step, building on reproducible builds, \"bootstrappable\" builds, and provenance tracking. The big picture shows how Guix can be used as the foundation of secure software supply chains.",
+      "doi": "10.22152/programming-journal.org/2023/7/1",
+      "arxiv_id": "2206.14606",
+      "url": "http://arxiv.org/abs/2206.14606v1",
+      "pdf_url": "https://arxiv.org/pdf/2206.14606v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6427096000175643,
+      "downloaded_to": null
+    },
+    {
+      "title": "Software supply chain: review of attacks, risk assessment strategies and security controls",
+      "authors": [
+        "Betul Gokkaya",
+        "Leonardo Aniello",
+        "Basel Halak"
+      ],
+      "year": 2023,
+      "venue": null,
+      "abstract": "The software product is a source of cyber-attacks that target organizations by using their software supply chain as a distribution vector. As the reliance of software projects on open-source or proprietary modules is increasing drastically, SSC is becoming more and more critical and, therefore, has attracted the interest of cyber attackers. While existing studies primarily focus on software supply chain attacks' prevention and detection methods, there is a need for a broad overview of attacks and comprehensive risk assessment for software supply chain security. This study conducts a systematic literature review to fill this gap. We analyze the most common software supply chain attacks by providing the latest trend of analyzed attacks, and we identify the security risks for open-source and third-party software supply chains. Furthermore, this study introduces unique security controls to mitigate analyzed cyber-attacks and risks by linking them with real-life security incidence and attacks.",
+      "doi": null,
+      "arxiv_id": "2305.14157",
+      "url": "http://arxiv.org/abs/2305.14157v1",
+      "pdf_url": "https://arxiv.org/pdf/2305.14157v1",
+      "citation_count": null,
+      "sources": [
+        "arxiv"
+      ],
+      "score": 0.6353498388504444,
+      "downloaded_to": null
+    }
+  ],
+  "errors": []
+}
