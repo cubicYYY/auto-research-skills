@@ -1,1 +1,1 @@
-chown -R vscode:vscode .
+sudo chown -R vscode:vscode .
