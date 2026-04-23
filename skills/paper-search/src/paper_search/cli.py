@@ -50,11 +50,28 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Upper year bound (inclusive). Defaults to current year.")
     p.add_argument("-o", "--output", type=Path, default=None,
                    help="If set, download PDFs into this directory.")
-    p.add_argument("--json", action="store_true",
-                   help="Emit machine-readable JSON instead of markdown.")
-    p.add_argument("--bibtex", action="store_true",
-                   help="Emit BibTeX entries for each result instead of markdown.")
+    p.add_argument("-f", "--format", dest="format",
+                   choices=["markdown", "json", "bibtex"], default=None,
+                   help="Output format (default: markdown).")
+    p.add_argument("--json", dest="json_flag", action="store_true",
+                   help="Alias for --format json.")
+    p.add_argument("--bibtex", dest="bibtex_flag", action="store_true",
+                   help="Alias for --format bibtex.")
     return p
+
+
+def _resolve_format(args: argparse.Namespace) -> str:
+    picks = []
+    if args.format:
+        picks.append(args.format)
+    if args.json_flag:
+        picks.append("json")
+    if args.bibtex_flag:
+        picks.append("bibtex")
+    uniq = list(dict.fromkeys(picks))
+    if len(uniq) > 1:
+        raise SystemExit(2)
+    return uniq[0] if uniq else "markdown"
 
 
 def _resolve_years(year_from, year_to):
@@ -116,8 +133,7 @@ def _fmt_json(result, query: str, year_range: tuple[int, int]) -> str:
 
 
 async def _async_main(args: argparse.Namespace) -> int:
-    if args.json and args.bibtex:
-        raise SystemExit(2)
+    fmt = _resolve_format(args)  # may raise SystemExit(2)
 
     year_from, year_to = _resolve_years(args.year_from, args.year_to)
     sources = [REGISTRY[n]() for n in args.sources]
@@ -137,9 +153,9 @@ async def _async_main(args: argparse.Namespace) -> int:
     if args.output:
         await download_all(result.papers, args.output)
 
-    if args.bibtex:
+    if fmt == "bibtex":
         print(to_bibtex_all(result.papers), end="")
-    elif args.json:
+    elif fmt == "json":
         print(_fmt_json(result, effective_query, (year_from, year_to)))
     else:
         print(_fmt_markdown(result, effective_query, (year_from, year_to)))
@@ -159,6 +175,8 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_async_main(args))
     except KeyboardInterrupt:
         return 130
+    except SystemExit as e:
+        return int(e.code) if isinstance(e.code, int) else 2
 
 
 if __name__ == "__main__":

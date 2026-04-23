@@ -38,17 +38,21 @@ Copy `skills/paper-search/.env.example` to `.env` and fill in what you have.
    ```bash
    git clone <this-repo> ~/claude-skills/paper-search-skill
    ```
-2. **Install deps** (one-time; creates `.venv` inside the skill folder):
+2. **Install deps** (one-time; `uv sync` at the repo root resolves the
+   workspace and installs every skill's console script into one `.venv`):
    ```bash
-   cd ~/claude-skills/paper-search-skill/skills/paper-search
+   cd ~/claude-skills/paper-search-skill
    uv sync
    ```
 3. **Register the skill folder** with Claude Code (point the skill loader at
    `skills/paper-search/`; refer to the [Skills docs](https://code.claude.com/docs/en/skills)
    for your Claude Code version's discovery rules).
-4. **Verify**:
+4. **Verify** — works from the repo root, any subdirectory with `--directory`,
+   or inside the skill folder:
    ```bash
-   uv run paper-search --help
+   uv run paper-search --help                                    # from repo root
+   uv run --directory ~/claude-skills/paper-search-skill paper-search --help   # from anywhere
+   cd skills/paper-search && uv run paper-search --help          # from skill dir
    ```
 
 Claude will then pick up `SKILL.md` and invoke the CLI through `uv run` —
@@ -63,7 +67,7 @@ Exactly the same setup, minus the skill registration:
 
 ```bash
 git clone <this-repo>
-cd paper-search-skill/skills/paper-search
+cd paper-search-skill
 uv sync
 uv run paper-search "attention" --top 10 --json
 ```
@@ -72,16 +76,16 @@ uv run paper-search "attention" --top 10 --json
 
 ## Usage
 
-Run from `skills/paper-search/`:
+Run from the repo root (recommended) or the skill folder:
 
 ```bash
 uv run paper-search "<query>" [options]
 ```
 
-Or from any directory:
+From any other directory, point `uv` at the repo root:
 
 ```bash
-uv run --directory /abs/path/to/skills/paper-search paper-search "<query>" [options]
+uv run --directory /abs/path/to/paper-search-skill paper-search "<query>" [options]
 ```
 
 ### Common commands
@@ -237,10 +241,9 @@ uv run python examples/repository_auditing.py
 - **Citation counts are missing for some sources.** arXiv, PaSa, and raw
   GitHub refs don't carry citation data; those papers get `cite = 0.5`
   (neutral) rather than 0, but you still lose signal on that axis.
-- **Invocation path matters.** `uv run paper-search` only finds the script
-  when run from the skill's project directory (`skills/paper-search/`) or
-  with `--directory` pointing at it — `uv` otherwise tries to resolve
-  `paper-search` against the current directory's `pyproject.toml`.
+- **Invocation path matters.** `uv run paper-search` works from the repo
+  root (it's a uv workspace) or from `skills/paper-search/`. From any other
+  cwd, pass `--directory /abs/path/to/paper-search-skill`.
 
 ---
 
@@ -248,7 +251,8 @@ uv run python examples/repository_auditing.py
 
 | Symptom                                                    | Fix |
 |------------------------------------------------------------|-----|
-| `error: Failed to spawn: paper-search`                     | `cd skills/paper-search` or add `--directory /abs/path/to/skills/paper-search`. |
+| `error: Failed to spawn: paper-search`                     | Run `uv sync` at the repo root first, then invoke from the repo root or pass `--directory /abs/path/to/paper-search-skill`. |
+| `ModuleNotFoundError: No module named 'paper_search'` when using `python -m` | Don't call the system `python`. Use `uv run paper-search …` or activate `.venv/bin/activate` first. |
 | `exit code 3` (all sources failed)                         | Network / API outage. Try again in a minute; check `errors[]` in JSON output for details. |
 | `google_scholar` always errors                             | Your host IP is likely rate-limited or blocked. Drop it from `-s`, or set `SERPAPI_KEY`. |
 | Top-ranked paper is off-topic despite a specific query     | Raise `-n` (e.g. `-n 150`), or narrow the query — recall is source-bound. |

@@ -1,0 +1,12 @@
+[project]
+name = "paper-search-skills"
+version = "0.0.0"
+description = "Workspace root for paper-search-skill monorepo."
+requires-python = ">=3.10"
+dependencies = ["paper-search"]
+
+[tool.uv.workspace]
+members = ["skills/*"]
+
+[tool.uv.sources]
+paper-search = { workspace = true }
