@@ -1,0 +1,21 @@
+[project]
+name = "similar-code-search"
+version = "0.1.0"
+description = "Search GitHub for similar prior work to a project or query. Used for novelty checks before writing a new tool, library, or paper implementation."
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.27",
+    "rank-bm25>=0.2.2",
+    "rich>=13.7",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+similar-code-search = "similar_code_search.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/similar_code_search"]

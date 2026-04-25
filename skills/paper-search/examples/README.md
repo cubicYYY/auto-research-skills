@@ -40,3 +40,16 @@ Prints a ranked list and writes the full JSON payload to
 ```bash
 uv run python examples/repository_auditing.py
 ```
+
+## Live — Keyword-Boosted Two-Pass Search
+
+Demonstrates the `paper-search` × `paper-summarize` composition from
+SKILL.md: pass 1 search → summarize top-3 → union `keywords[]`, drop
+terms already in the query, cap at 4 → pass 2 search → print the delta.
+
+Requires `paper-summarize` in the same workspace and `ANTHROPIC_API_KEY`;
+gracefully degrades to pass 1 only if either is missing.
+
+```bash
+uv run python examples/keyword_boosted_search.py
+```

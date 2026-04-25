@@ -135,6 +135,25 @@ def _fmt_json(result, query: str, year_range: tuple[int, int]) -> str:
 async def _async_main(args: argparse.Namespace) -> int:
     fmt = _resolve_format(args)  # may raise SystemExit(2)
 
+    # Prevent the common mistake of passing a relative -o path when the CLI
+    # was launched via `uv run --directory <skill>`: cwd is the skill folder,
+    # and a relative path would silently land inside the skill repo.
+    if args.output is not None and not args.output.is_absolute():
+        cwd = Path.cwd()
+        skill_root = Path(__file__).resolve().parents[2]
+        try:
+            cwd.relative_to(skill_root)
+            in_skill = True
+        except ValueError:
+            in_skill = False
+        if in_skill:
+            sys.stderr.write(
+                f"error: -o was given a relative path ({args.output!s}) while the CLI "
+                f"is running inside the skill directory ({cwd}). Pass an absolute "
+                f"path so PDFs don't land inside the skill repo.\n"
+            )
+            return 2
+
     year_from, year_to = _resolve_years(args.year_from, args.year_to)
     sources = [REGISTRY[n]() for n in args.sources]
 

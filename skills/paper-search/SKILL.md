@@ -21,7 +21,14 @@ metadata:
 
 ## Variables used in this file
 
-- `${CLAUDE_SKILL_DIR}` — skill directory, always present at skill-load time.
+- `${CLAUDE_SKILL_DIR}` — the skill's own directory. Always present at
+  skill-load time. Used only as the `--directory` argument to `uv run` so
+  the CLI resolves. **Never use this as the destination for user-visible
+  output files** — it's inside the skill repo.
+- `${USER_CWD}` — the user's current working directory (typically their
+  project root) **at the moment the agent was invoked**. The CLI's cwd will
+  be `${CLAUDE_SKILL_DIR}`, not this, so any relative path the user gives
+  must be resolved against `${USER_CWD}` *before* being passed to the CLI.
 - `${QUERY}` — the search query. **Construction rule:** if the user pastes a
   BibTeX entry, pass the entry *verbatim* as `${QUERY}` (the CLI extracts the
   title). Otherwise use the user's own words.
@@ -66,7 +73,7 @@ can apply.
 | User explicitly asks for a `.bib` file, BibTeX output, or citations for LaTeX        | Replace `-f json` with `-f bibtex`                       |
 | User explicitly asks for a human-readable summary / no JSON                          | Replace `-f json` with `-f markdown`                     |
 | User pastes a BibTeX entry                                                           | No flag change — just use the entry as `${QUERY}`        |
-| User explicitly says "download the PDFs" (or equivalent)                             | Add `-o <dir>` where `<dir>` is the path they gave, or `./papers` if none given |
+| User explicitly says "download the PDFs" (or equivalent)                             | Add `-o <abs_dir>`. See **Resolving `-o` paths** below — never pass a relative path unless explicitly told; otherwise the CLI runs with cwd = `${CLAUDE_SKILL_DIR}`, so `./papers` lands *inside the skill folder*, which is confusing. |
 | User asks for classic/foundational work, or uses words like "original", "seminal"    | Add `--from 2005`                                        |
 | User asks for "recent" / "latest" without a year                                     | No change — default window is `now - 5 … now`            |
 | User asks for a specific year range                                                  | Add `--from <lo> --to <hi>` (override the default `--to`)|
@@ -78,12 +85,37 @@ can apply.
 | Previous call returned `total_candidates == 0` for the same query                    | Try one narrower sub-query from the user's phrasing, then stop |
 | `errors[]` in previous result lists every source in `sources_used`                   | Stop — report the errors, do not retry                   |
 
+### Resolving `-o` paths
+
+The CLI runs with `cwd = ${CLAUDE_SKILL_DIR}` (that's what `uv run --directory …` does). Any relative path you pass to `-o` resolves against the skill folder — which is almost never what the user wants. Always pass an **absolute path under the user's project**:
+
+1. Determine the user's project root. In order of preference:
+   - The path the user literally typed if it was absolute (`/path/to/refs`).
+   - `${USER_CWD}` — the shell cwd at the moment the agent was invoked.
+     This is almost always the repo root the user is working in.
+   - If neither is known, **ask** the user: *"Where should I save the PDFs?
+     Give me an absolute path, or I'll use `$(pwd)/papers`."*
+2. Join with the user's relative specifier, e.g. `papers/`, `./refs`,
+   `out/pdfs`. If the user said "save to `./papers`", resolve to
+   `${USER_CWD}/papers`, **not** `./papers`.
+3. Pass the resulting absolute path to `-o`. Example:
+
+   ```bash
+   uv run --directory "${CLAUDE_SKILL_DIR}" paper-search "${QUERY}" \
+       --to !`date +%Y` -f json -o "${USER_CWD}/papers"
+   ```
+
+After the run completes, tell the user the absolute destination in your
+summary so there is no ambiguity (e.g. "Downloaded 10 PDFs to
+`/home/you/project/papers/`").
+
 **Never-do rules** (absolute):
 
 - Never pass `-s <anything>` without including `arxiv,openalex,semantic_scholar` in the list. `-s` **replaces**, does not append.
 - Never enable `google_scholar` without the user's explicit confirmation.
 - Never run `python -m paper_search...` or activate a system Python. Only `uv run`.
 - Never add `-o` unless the user asked for PDFs in so many words.
+- Never pass a relative path to `-o` (see **Resolving `-o` paths**) unless explicitly told. The CLI's cwd is the skill folder, so `./papers` lands inside the skill repo.
 - Never re-run more than twice for the same query.
 
 ### `google_scholar` confirmation script
@@ -175,6 +207,61 @@ These are properties of the tool, not rules for the agent:
 - Citation counts from `arxiv`, `pasa`, and `github` are always `null`.
 - The first `-s github` run is slow (~30–60 s); subsequent runs hit the
   SQLite cache at `~/.cache/paper-search/resolved.sqlite` (30-day TTL).
+
+## Two-pass keyword-boosted search (only if `paper-summarize` is available)
+
+**Precondition:** this pattern requires the `paper-summarize` skill to be
+installed in the same workspace. If `uv run paper-summarize --help` exits
+non-zero, skip this section and stop after the first search.
+
+When a user runs an initial search and then summarizes one or more of the
+top hits, the summaries expose a `keywords[]` field (5–10 domain-specific
+phrases per paper). Those keywords frequently contain terms the user didn't
+think to include in the original query — re-running the search with them
+appended routinely surfaces papers the first pass missed.
+
+Do this **only** when all of the following hold:
+
+1. The user has (or just) summarized ≥ 2 papers from the first search.
+2. The JSON summaries are in the current context (you have their
+   `keywords[]` arrays).
+
+### Procedure
+
+1. **Collect keywords.** Union every paper's `keywords[]` from the
+   `paper-summarize` JSON outputs you have. Drop any that are already in
+   the first-pass query (case-insensitive substring match).
+2. **Cap at 5 new terms.** More than that dilutes the BM25 signal and
+   starts outweighing the original query. Prefer terms that appear in ≥ 2
+   summaries (signals cross-paper relevance), then by length (longer phrases
+   are more specific).
+3. **Re-run paper-search** with the enriched query, concatenated as a
+   space-separated string:
+
+   ```bash
+   uv run --directory "${CLAUDE_SKILL_DIR}" paper-search \
+       "${ORIGINAL_QUERY} ${KW1} ${KW2} ${KW3} ${KW4}" \
+       --to !`date +%Y` -f json
+   ```
+
+   Do not change `-s` or `-n` from the first pass — only the query string.
+4. **Compute the delta.** From the second-pass `papers[]`, drop any paper
+   whose `arxiv_id` or `doi` appeared in the first pass. What remains is
+   the keyword-boost recall.
+5. **Report to the user** in this shape:
+   - One line: "Second pass added N papers using keywords: `<kw1>, <kw2>, …`".
+   - Then the usual paper summary format for the new papers only.
+   - If N is 0, say so plainly — don't pretend the re-search helped.
+
+### Never-do rules for this loop
+
+- Never run the second pass without explicit summarize output — guessing
+  keywords from your own knowledge defeats the point (the whole value is
+  that these terms came from the papers themselves).
+- Never chain a third pass off the second pass's summaries. Diminishing
+  returns kick in fast; the user can ask again if they want another round.
+- Never re-run the search when the first pass already returned ≥ 20 on-topic
+  papers. The boost is for thin-recall cases.
 
 ## On-demand references
 

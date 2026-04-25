@@ -1,12 +1,15 @@
 [project]
-name = "paper-search-skills"
+name = "claude-skills-bundle"
 version = "0.0.0"
-description = "Workspace root for paper-search-skill monorepo."
+description = "A bundle of Claude Code skills — workspace root. Each skill lives under skills/<name>/."
 requires-python = ">=3.10"
-dependencies = ["paper-search"]
+dependencies = ["paper-search", "skill-finder", "similar-code-search", "paper-summarize"]
 
 [tool.uv.workspace]
 members = ["skills/*"]
 
 [tool.uv.sources]
 paper-search = { workspace = true }
+skill-finder = { workspace = true }
+similar-code-search = { workspace = true }
+paper-summarize = { workspace = true }
