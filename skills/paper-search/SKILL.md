@@ -109,6 +109,11 @@ After the run completes, tell the user the absolute destination in your
 summary so there is no ambiguity (e.g. "Downloaded 10 PDFs to
 `/home/you/project/papers/`").
 
+**`-o` also becomes the summary directory.** When `paper-summarize` is
+loaded (default two-pass flow), the same `-o` path is passed through as
+`${SUMMARY_DIR}` so each paper's `.md` summary lands next to its
+`.pdf`. See "Two-pass keyword-boosted search" → "Summary directory".
+
 **Never-do rules** (absolute):
 
 - Never pass `-s <anything>` without including `arxiv,openalex,semantic_scholar` in the list. `-s` **replaces**, does not append.
@@ -208,34 +213,55 @@ These are properties of the tool, not rules for the agent:
 - The first `-s github` run is slow (~30–60 s); subsequent runs hit the
   SQLite cache at `~/.cache/paper-search/resolved.sqlite` (30-day TTL).
 
-## Two-pass keyword-boosted search (only if `paper-summarize` is available)
+## Two-pass keyword-boosted search (default when `paper-summarize` is loaded)
 
-**Precondition:** this pattern requires the `paper-summarize` skill to be
-loaded in the same session. If it isn't, skip this section and stop after
-the first search.
+**Default behavior:** if the `paper-summarize` skill is loaded in this
+session, run two passes by default — first-pass search, summarize the
+top hits, then re-search with their keywords appended. This is the main
+`paper-search` pipeline, not an opt-in.
 
-When a user runs an initial search and then summarizes one or more of the
-top hits, each summary exposes a `keywords` list (5–10 domain-specific
-phrases per paper). Those keywords frequently contain terms the user didn't
-think to include in the original query — re-running the search with them
-appended routinely surfaces papers the first pass missed.
+**Skip the second pass** only when:
 
-Do this **only** when all of the following hold:
+- `paper-summarize` is not loaded (fall back to single-pass + final
+  summary for the user).
+- The first pass already returned ≥ 20 on-topic papers (the boost is
+  for thin-recall cases — re-running is just churn).
+- The user explicitly said "just search, don't summarize" or similar.
 
-1. The user has (or just) summarized ≥ 2 papers from the first search.
-2. The summaries are in the current context (you have their `keywords`
-   lists to draw from).
+### Summary directory
+
+When you trigger `paper-summarize` as part of this loop, pass it a
+`${SUMMARY_DIR}` so it knows where to write. Resolution order:
+
+1. **If the user asked for PDFs** (i.e. you passed `-o <abs_dir>`) —
+   use that same directory. Summaries land **alongside the PDFs**,
+   one `<slug>.md` next to each `<slug>.pdf`.
+2. **If the user named a summary directory explicitly** ("save
+   summaries to `…`") — use that, even if different from `-o`.
+3. **If neither** — don't pass a directory. `paper-summarize` will ask
+   the user directly before writing anything.
+
+**Never guess a summary directory.** If `-o` wasn't set and the user
+didn't name one, leave `${SUMMARY_DIR}` unset and let
+`paper-summarize` prompt.
 
 ### Procedure
 
-1. **Collect keywords.** Union every paper's `keywords` list from the
-   `paper-summarize` outputs you have. Drop any that are already in the
-   first-pass query (case-insensitive substring match).
-2. **Cap at 5 new terms.** More than that dilutes the BM25 signal and
-   starts outweighing the original query. Prefer terms that appear in ≥ 2
-   summaries (signals cross-paper relevance), then by length (longer phrases
-   are more specific).
-3. **Re-run paper-search** with the enriched query, concatenated as a
+1. **First pass.** Run the search as normal (see "The command"). Take
+   the top 3 papers by `score` for summarization. If `total_candidates`
+   is already ≥ 20, skip to step 6 (report the first pass and stop).
+2. **Summarize the top 3.** Invoke `paper-summarize` on each, passing
+   the resolved `${SUMMARY_DIR}` if one exists. Ask it to emit
+   `Keywords:` lines (the two-pass loop needs them — they're not in
+   the default summary output). You now have 3 `keywords` lists.
+3. **Collect keywords.** Union every paper's `keywords` list. Drop
+   any that are already in the first-pass query (case-insensitive
+   substring match).
+4. **Cap at 5 new terms.** More than that dilutes the BM25 signal and
+   starts outweighing the original query. Prefer terms that appear in
+   ≥ 2 summaries (cross-paper relevance signal), then by length
+   (longer phrases are more specific).
+5. **Re-run paper-search** with the enriched query, concatenated as a
    space-separated string:
 
    ```bash
@@ -244,24 +270,33 @@ Do this **only** when all of the following hold:
        --to !`date +%Y` -f json
    ```
 
-   Do not change `-s` or `-n` from the first pass — only the query string.
-4. **Compute the delta.** From the second-pass `papers[]`, drop any paper
-   whose `arxiv_id` or `doi` appeared in the first pass. What remains is
-   the keyword-boost recall.
-5. **Report to the user** in this shape:
-   - One line: "Second pass added N papers using keywords: `<kw1>, <kw2>, …`".
-   - Then the usual paper summary format for the new papers only.
+   Do not change `-s` or `-n` from the first pass — only the query
+   string. If the first pass used `-o`, pass `-o` again so any new
+   second-pass papers also download into the same directory.
+6. **Compute the delta.** From the second-pass `papers[]`, drop any
+   paper whose `arxiv_id` or `doi` appeared in the first pass. What
+   remains is the keyword-boost recall.
+7. **Report to the user** in this shape:
+   - First-pass summary (the usual numbered list).
+   - One line: "Second pass added N papers using keywords:
+     `<kw1>, <kw2>, …`".
+   - The new papers in the same numbered-list format.
    - If N is 0, say so plainly — don't pretend the re-search helped.
+   - If summaries were written to disk, end with "Summaries written to
+     `${SUMMARY_DIR}/`".
 
 ### Never-do rules for this loop
 
-- Never run the second pass without explicit summarize output — guessing
-  keywords from your own knowledge defeats the point (the whole value is
-  that these terms came from the papers themselves).
-- Never chain a third pass off the second pass's summaries. Diminishing
-  returns kick in fast; the user can ask again if they want another round.
-- Never re-run the search when the first pass already returned ≥ 20 on-topic
-  papers. The boost is for thin-recall cases.
+- Never run the second pass without explicit summarize output —
+  guessing keywords from your own knowledge defeats the point (the
+  whole value is that these terms came from the papers themselves).
+- Never chain a third pass off the second pass's summaries.
+  Diminishing returns kick in fast; the user can ask again if they
+  want another round.
+- Never re-run the search when the first pass already returned ≥ 20
+  on-topic papers.
+- Never pass a relative `${SUMMARY_DIR}` to `paper-summarize`. Same
+  rule as `-o`: relative paths land inside `${CLAUDE_SKILL_DIR}`.
 
 ## On-demand references
 
