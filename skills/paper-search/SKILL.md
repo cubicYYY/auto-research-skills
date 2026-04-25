@@ -114,6 +114,62 @@ loaded (default two-pass flow), the same `-o` path is passed through as
 `${SUMMARY_DIR}` so each paper's `.md` summary lands next to its
 `.pdf`. See "Two-pass keyword-boosted search" → "Summary directory".
 
+### Renaming downloaded PDFs
+
+The CLI writes each PDF under whatever basename it picked (typically
+the arXiv ID or DOI). That's unreadable in a folder humans browse, and
+it won't match what `paper-summarize` writes for the `.md` files. So
+after the CLI exits with `downloaded_to` paths populated, **rename
+each PDF** to the shared filename convention (see **Filename
+convention** below). Use a plain `mv` via Bash.
+
+Example (after parsing the JSON):
+
+```
+mv "/abs/papers/1706.03762.pdf" \
+   "/abs/papers/[neurips-2017]-attention-is-all-you-need-vaswani-10.48550-arxiv.1706.03762.pdf"
+```
+
+This guarantees summary `.md` files written by `paper-summarize`
+(which uses the same convention from the paper metadata, not from the
+PDF filename) share a basename with their PDF, so the two sort
+together in `ls`.
+
+### Filename convention
+
+Shared with `paper-summarize` — the extension differs (`.pdf` vs
+`.md`), everything else is identical.
+
+```
+[<venue-year>]-<title-slug>-<first-author-lastname>-<doi-slug>.<ext>
+```
+
+Example:
+
+```
+[neurips-2017]-attention-is-all-you-need-vaswani-10.48550-arxiv.1706.03762.pdf
+```
+
+Build each segment from the paper's JSON record (all fields lowercase,
+ASCII, separator `-`):
+
+- `<venue-year>` — `venue` + `year`, non-alphanumerics → `-`, kept in
+  brackets. Preprint-only → `arxiv-<year>`. Both unknown → omit the
+  bracket segment.
+- `<title-slug>` — `title`, lowercased, non-alphanumerics → `-`,
+  collapsed, truncated to **60 chars** at a word boundary.
+- `<first-author-lastname>` — last name of `authors[0]`, lowercase,
+  ASCII (strip accents, drop non-romanizable chars). For compound
+  family names use the last token. Unknown → omit.
+- `<doi-slug>` — `doi` with `/` → `-`, lowercase. No DOI but has
+  `arxiv_id` → `arxiv-<arxiv_id>`. Neither → omit.
+- Collapse any `--` that appears across segment boundaries. Cap the
+  full name at 200 chars by shortening the title slug only.
+- Collisions → suffix `-2`, `-3`, …
+
+**Never** use the bare arXiv ID or DOI as the whole filename — it's
+unreadable and it won't match `paper-summarize`'s output.
+
 **Never-do rules** (absolute):
 
 - Never pass `-s <anything>` without including `arxiv,openalex,semantic_scholar` in the list. `-s` **replaces**, does not append.
@@ -247,13 +303,17 @@ didn't name one, leave `${SUMMARY_DIR}` unset and let
 
 ### Procedure
 
-1. **First pass.** Run the search as normal (see "The command"). Take
-   the top 3 papers by `score` for summarization. If `total_candidates`
+1. **First pass.** Run the search as normal (see "The command"). If
+   `-o` was set, **rename each downloaded PDF** to the shared filename
+   convention immediately (see "Renaming downloaded PDFs"). Take the
+   top 3 papers by `score` for summarization. If `total_candidates`
    is already ≥ 20, skip to step 6 (report the first pass and stop).
 2. **Summarize the top 3.** Invoke `paper-summarize` on each, passing
-   the resolved `${SUMMARY_DIR}` if one exists. Ask it to emit
-   `Keywords:` lines (the two-pass loop needs them — they're not in
-   the default summary output). You now have 3 `keywords` lists.
+   the resolved `${SUMMARY_DIR}` if one exists. `paper-summarize` uses
+   the same filename convention, so its `.md` file will sit next to
+   the `.pdf` you just renamed. Ask it to emit `Keywords:` lines (the
+   two-pass loop needs them — they're not in the default summary
+   output). You now have 3 `keywords` lists.
 3. **Collect keywords.** Union every paper's `keywords` list. Drop
    any that are already in the first-pass query (case-insensitive
    substring match).
@@ -272,7 +332,9 @@ didn't name one, leave `${SUMMARY_DIR}` unset and let
 
    Do not change `-s` or `-n` from the first pass — only the query
    string. If the first pass used `-o`, pass `-o` again so any new
-   second-pass papers also download into the same directory.
+   second-pass papers also download into the same directory. **Rename
+   the new PDFs** to the shared filename convention before reporting
+   — same step as the first pass.
 6. **Compute the delta.** From the second-pass `papers[]`, drop any
    paper whose `arxiv_id` or `doi` appeared in the first pass. What
    remains is the keyword-boost recall.

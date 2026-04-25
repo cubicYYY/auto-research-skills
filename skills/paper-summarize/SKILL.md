@@ -9,10 +9,7 @@ metadata:
 
 # paper-summarize
 
-Produce a structured, technical summary of a paper. Everything runs
-**inline in the conversation** — extract the paper text with the tools
-below, then write the summary yourself. No external API call, no CLI
-invocation from this skill.
+Produce a structured, technical summary of paper(s).
 
 ## Runtime context
 
@@ -152,18 +149,18 @@ always a mistake.
 When `${SUMMARY_DIR}` is set:
 
 1. `mkdir -p "${SUMMARY_DIR}"` once, upfront.
-2. For each paper, choose a stable filename:
-   - Prefer the arXiv ID: `2308.14460.md`.
-   - Else the DOI, slugified: `10-48550-arxiv-2308-14460.md`.
-   - Else a title slug, truncated to 60 chars:
-     `steam-simulating-the-interactive-behavior-of-programmers.md`.
-   - Collisions → append `-2`, `-3`, …
+2. For each paper, build a filename with the **Filename convention**
+   below. Opaque IDs (bare DOIs, bare arXiv numbers) are not acceptable
+   — summaries end up in folders humans browse.
 3. Write the full template (not brief mode) via `Write`. The file's
    content is exactly what you would have printed inline — the `===`
    banners, every section, no preamble, no trailing chatter.
-4. **Match filenames to downloaded PDFs when possible.** If
-   `paper-search` downloaded `2308.14460.pdf` into the same directory,
-   your summary should be `2308.14460.md` — same basename.
+4. **Match filenames to the downloaded PDF.** If `paper-search`
+   downloaded a PDF for this paper in the same directory, the summary
+   basename must equal the PDF basename (only the extension differs).
+   Both skills use the same convention, so if `paper-search` renamed
+   (or you renamed) the PDF correctly, the mapping is 1:1 by
+   construction.
 5. After all writes, emit one inline line per paper:
 
    ```
@@ -171,6 +168,73 @@ When `${SUMMARY_DIR}` is set:
    ```
 
    And a closing line: `Wrote N summaries to ${SUMMARY_DIR}/`.
+
+## Filename convention
+
+Both this skill and `paper-search` use the same human-readable filename
+shape. The extension differs (`.md` here, `.pdf` for downloads) but
+everything before the extension is identical, so a paper's summary and
+PDF share a basename.
+
+```
+[<venue-year>]-<title-slug>-<first-author-lastname>-<doi-slug>.<ext>
+```
+
+Example:
+
+```
+[neurips-2017]-attention-is-all-you-need-vaswani-10.48550-arxiv.1706.03762.pdf
+[neurips-2017]-attention-is-all-you-need-vaswani-10.48550-arxiv.1706.03762.md
+```
+
+### Building each segment
+
+- **`<venue-year>`** — the paper's primary venue and publication year,
+  lowercased, non-alphanumerics replaced with `-`.
+  - Conference / journal known: `neurips-2017`, `acm-tosem-2025`,
+    `iclr-2024`, `naacl-2019`, `ieee-tse-2022`.
+  - Preprint-only: `arxiv-<year>` (e.g. `arxiv-2023`).
+  - Journal version supersedes preprint year when both exist — use the
+    published venue + its year.
+  - Unknown venue + unknown year → omit the bracket segment entirely,
+    filename starts with the title slug.
+  - Keep the square brackets literally — they delimit the segment and
+    sort well in `ls`.
+- **`<title-slug>`** — paper title, lowercase, alphanumerics kept,
+  everything else collapsed to `-`, consecutive `-` collapsed,
+  leading/trailing `-` stripped. Truncate to **60 chars** at a word
+  boundary (don't cut a word in half).
+- **`<first-author-lastname>`** — last name of the first author,
+  lowercase, ASCII-only. Strip accents (`é` → `e`, `ü` → `u`); drop
+  characters that don't romanize cleanly. For multi-word family names
+  (`van der Berg`), use the last token (`berg`). For unknown author →
+  omit this segment.
+- **`<doi-slug>`** — the DOI with `/` replaced by `-`, kept lowercase,
+  other characters preserved (dots are fine in filenames).
+  - No DOI but has arXiv ID: use `arxiv-<id>` (e.g. `arxiv-2308.14460`).
+  - Neither DOI nor arXiv ID: omit this segment.
+- **Separator** — `-` between every segment. No double `-` across
+  segment boundaries; collapse them if they appear.
+- **Collisions** — if two papers produce the same filename, append
+  `-2`, `-3`, … to the later ones.
+- **Length cap** — if the full name exceeds 200 chars, shorten the
+  title slug until it fits (keep the other segments intact — venue
+  and DOI are what disambiguate).
+
+### More examples
+
+```
+[acm-tosem-2025]-steam-simulating-the-interactive-behavior-of-programmers-zhang-10.1145-3688839.md
+[arxiv-2022]-flashattention-fast-and-memory-efficient-exact-attention-dao-arxiv-2205.14135.pdf
+[iclr-2021]-an-image-is-worth-16x16-words-dosovitskiy-arxiv-2010.11929.md
+```
+
+### Never-do for filenames
+
+- Never use the bare DOI or arXiv ID as the whole filename — they're
+  unreadable at a glance.
+- Never embed spaces or uppercase letters; the slug is lowercase-only.
+- Never keep trailing dots or hyphens before the extension.
 
 ## Output template
 
