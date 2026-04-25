@@ -1,183 +1,112 @@
 ---
 name: paper-summarize
-description: Summarize academic papers into structured sections (TL;DR, problem, approach, results, contributions, limitations, keywords) via the Claude API. Accepts arXiv IDs, DOIs, URLs, or local PDFs. Supports follow-up Q&A on the same paper with prompt caching so repeat calls on the same paper are cheap. Use when the user asks to "summarize this paper", "explain what this paper does", "TL;DR this arXiv link", "give me the key findings of X", or pastes a paper reference after using `paper-search`. Also use when the user asks follow-up questions about a paper they just had summarized.
+description: Summarize academic papers into structured sections (TL;DR, problem, approach, results, contributions, limitations, keywords). Accepts arXiv IDs, DOIs, URLs, or local PDFs. Use when the user asks to "summarize this paper", "explain what this paper does", "TL;DR this arXiv link", "give me the key findings of X", or pastes a paper reference after using `paper-search`. Also use when the user asks follow-up questions about a paper they just had summarized.
 license: MIT
-allowed-tools: Bash(uv run *) Bash(date *) Bash(echo *) Bash(printenv *) Bash(pwd) Read
+allowed-tools: Read, WebFetch, Skill, Bash(date *)
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # paper-summarize
 
+Produce a structured summary of a paper. Everything runs **inline in the
+conversation** — extract the paper text with the tools below, then write the
+summary yourself. No external API call, no CLI invocation from this skill.
+
 ## Runtime context
 
 - Current year: !`date +%Y`
-- Skill dir: !`pwd`
 
-## Variables used in this file
+## Inputs
 
-- `${CLAUDE_SKILL_DIR}` — this skill's directory. Always pass
-  `--directory "${CLAUDE_SKILL_DIR}"` to `uv run`, never bare `uv run …`.
-- `${INPUT}` — arXiv ID (`1706.03762`), arXiv URL, DOI
-  (`10.48550/arXiv.1706.03762`), any HTTPS URL to a PDF, or an absolute local
-  PDF path. Pass exactly what the user gave; the CLI normalizes it.
-- `${USER_CWD}` — the user's cwd. The CLI **does not** write files (output is
-  to stdout), so this matters less here than in `paper-search`, but still use
-  absolute paths if the user asks you to redirect output to a file.
+`${INPUT}` — one of:
 
-## The command
-
-Default — structured summary, markdown out:
-
-```bash
-uv run --directory "${CLAUDE_SKILL_DIR}" paper-summarize "${INPUT}"
-```
-
-Agent-friendly (JSON for downstream parsing):
-
-```bash
-uv run --directory "${CLAUDE_SKILL_DIR}" paper-summarize "${INPUT}" -f json
-```
-
-Follow-up question on the same paper (cached body, cheap):
-
-```bash
-uv run --directory "${CLAUDE_SKILL_DIR}" paper-summarize "${INPUT}" \
-    -q "How does this compare to <X>?" -f json
-```
-
-## Canonical flags
-
-| Flag            | Value space               | Default                                         |
-|-----------------|---------------------------|-------------------------------------------------|
-| positional      | arXiv / DOI / URL / path  | **required**                                    |
-| `-m, --model`   | `sonnet` \| `opus`        | `sonnet` (= `claude-sonnet-4-6`)                |
-| `-q, --ask`     | question string           | *none* — if set, does Q&A instead of summary     |
-| `-f, --format`  | `markdown` \| `json`      | `markdown`                                      |
-| `--max-tokens`  | int                       | `4000` for summary, `2000` for `--ask`          |
+- An arXiv ID (`1706.03762`) or arXiv URL (`https://arxiv.org/abs/1706.03762`).
+- A DOI (`10.48550/arXiv.1706.03762`) or DOI URL.
+- Any HTTPS URL — PDF or landing page.
+- An absolute local PDF path.
 
 ## Procedure
 
-1. **Parse the user's intent.** If the user wants a summary, run the default
-   command. If the user asks a specific question about a paper ("what's the
-   F1 score on SQuAD?", "how do they handle OOV tokens?"), use `-q <question>`.
-2. **Always pass `-f json`** when running in agent mode — the JSON preserves
-   all fields (`title`, `authors`, `tldr`, `problem`, `approach`, `results`,
-   `contributions`, `limitations`, `keywords`) and a `_usage` block for token
-   accounting.
-3. **Summarize from the JSON**, don't dump it. For the user, format as:
-   - Title + authors (one line)
-   - TL;DR (bold)
-   - 2–4 bullets from `contributions` + `limitations` combined
-   - A single "see full paper at <url>" link if the input was a URL/arXiv ID.
-   Include `results` verbatim only if the user asked about results.
-4. **For follow-up questions**, re-run with the same `${INPUT}` and `-q`.
-   The paper body is cached for 1 hour — expect `cache_read_input_tokens` in
-   the usage block to be close to the first-call `cache_creation_input_tokens`.
-   Mention to the user when a follow-up hit the cache ("cheaper than the first
-   call").
-5. **Model selection.** Default to `sonnet` — it's plenty for most summaries
-   and half the cost of Opus. Switch to `-m opus` when the user says "deep
-   dive", "careful analysis", "opus please", or when the paper is heavily
-   technical (new ML architecture papers, theoretical CS proofs, etc.).
-6. **Handle exit codes:** `0` = success. `2` = bad input (unrecognized input
-   spec, or the CLI printed a configuration error to stderr — relay it
-   verbatim to the user and stop, do not retry). `3` = empty extracted text
-   (scanned PDF with no OCR — tell the user this and stop, do not retry).
-   Any other code → treat as `3`.
+1. **Extract the paper text.** Try these in order; use the first one that
+   applies:
+   - **If a `pdf` skill is loaded** — delegate to it and take back the
+     extracted text. This is the preferred path: dedicated PDF skills handle
+     scanned pages, complex layouts, and tables better than plain reads.
+   - **Python libraries** — use Python's libraries like `pypdf` `pdf2image` `pdfplumber` if really needed.
+   - **Local PDF path** — use `Read` on the path. Claude Code's `Read` can
+     ingest `.pdf` files directly.
+   - **arXiv ID / arXiv URL** — normalize to
+     `https://arxiv.org/pdf/{id}.pdf` and `WebFetch` it.
+   - **DOI** — `WebFetch` `https://doi.org/{doi}` and follow to the PDF. If
+     the publisher is paywalled and the page is HTML, tell the user and stop
+     — don't summarize a login wall.
+   - **Any other URL** — `WebFetch` it.
+
+   If the extraction comes back empty or almost-empty (typical for scanned
+   PDFs with no text layer), stop. Do not retry. Tell the user the PDF has
+   no extractable text and suggest an OCR pass (e.g. `ocrmypdf`) first.
+
+2. **Write the structured summary.** Read the extracted text and produce
+   every field below from the paper itself — no placeholders, no guesses:
+
+   | Field           | Shape                                                                    |
+   |-----------------|--------------------------------------------------------------------------|
+   | `title`         | As stated by the authors.                                                |
+   | `authors`       | First-author-first list, "et al." after the third when displaying.       |
+   | `tldr`          | One sentence, ≤ 40 words, plain language, no hedging.                    |
+   | `problem`       | One tight paragraph: the gap or question the paper addresses.            |
+   | `approach`      | One tight paragraph: method, model, architecture, technique.             |
+   | `results`       | One paragraph with the paper's actual numbers (metrics, datasets, deltas).|
+   | `contributions` | Bulleted list of distinct contributions.                                 |
+   | `limitations`   | Bulleted list — acknowledged by the authors, or evident from the method. |
+   | `keywords`      | 5–10 lowercase topical phrases useful for search.                        |
+
+3. **Format for the user.** Don't dump every field verbatim. Default
+   output is:
+   - **Title** (bold) + first 3 authors ("et al." if there are more) + year
+     if known.
+   - **TL;DR.** one sentence.
+   - 2–4 bullets pulled from `contributions` + `limitations` combined.
+   - A link back to the paper if the input was an arXiv ID / URL / DOI.
+
+   Include `results`, `approach`, or `problem` paragraphs only when the
+   user asked for them specifically, or asked for a "full" / "detailed"
+   summary.
+
+4. **Follow-up questions on the same paper.** Answer directly from the
+   extracted text you already have in this conversation. Only re-extract
+   if that context has been dropped (e.g. after a long gap or a compaction).
 
 ## Trigger → action table
 
-| User says / asks                                                                     | Action                                                      |
-|--------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| "Summarize / TL;DR / explain this paper", gives an arXiv/DOI/URL/PDF                 | Default command. Summarize from JSON.                       |
-| "What does <paper> say about <topic>?"                                               | `-q "<topic question>"` (Q&A mode).                         |
-| Pastes an arXiv link after a `paper-search` call                                     | Default command. Summarize from JSON.                       |
-| "Give me the results / F1 / accuracy / numbers"                                      | `-q "What are the main quantitative results?"` if structured summary is insufficient; otherwise just extract from `results` field. |
-| "Read this PDF" + filepath                                                           | Default command with the path as `${INPUT}`.                |
-| "Do a deep read" / "be careful" / "opus please"                                      | Add `-m opus`.                                              |
-| Several follow-ups on the same paper                                                 | Keep calling with the **same** `${INPUT}` + `-q`. Cache hits are automatic. |
-| "Compare this to the previous paper we summarized"                                   | Summarize each paper independently (they share no cache), then synthesize in your own response. |
+| User says / asks                                                         | Action                                                         |
+|--------------------------------------------------------------------------|----------------------------------------------------------------|
+| "Summarize / TL;DR / explain this paper", gives an arXiv/DOI/URL/PDF     | Extract → structured summary → short format.                   |
+| "What does `<paper>` say about `<topic>`?"                               | Extract (if not already) → answer directly from the text.      |
+| Pastes an arXiv link after a `paper-search` call                         | Extract → structured summary.                                  |
+| "Give me the results / F1 / accuracy / numbers"                          | Focus the output on `results` verbatim.                        |
+| "Read this PDF" + filepath                                               | Extract → structured summary.                                  |
+| "Deep read" / "careful analysis"                                         | Produce the full field set (including `approach` + `problem`). |
+| Follow-up question on the same paper                                     | Reuse in-context text; don't re-extract.                       |
+| "Compare this to the previous paper we summarized"                       | Extract both, then synthesize in your own response.            |
 
 ## Never-do rules
 
-- Never paste the full JSON or the full `results` / `approach` / `problem`
-  paragraphs verbatim into chat unless the user asked for the raw output.
-  The structured summary is long — extract, don't dump.
-- Never call the CLI without `--directory "${CLAUDE_SKILL_DIR}"` — it's a
-  uv-managed project; bare `uv run paper-summarize` fails from most cwds.
-- Never switch `${INPUT}` between follow-ups if you want cache reuse. Cache
-  is keyed on the paper body (normalized) — different URL / different arXiv ID
-  = different cache entry.
-- Never upgrade to `opus` silently for cost reasons you invent. If the user
-  hasn't asked, stay on `sonnet`.
-- Never retry on a scanned-PDF failure (`exit 3`). Tell the user the PDF has
-  no extractable text; they need an OCR pass first. This skill does not do OCR.
-- Never claim the summary is "verified" or "fact-checked" — it's a model
-  read of the paper, not a review.
-
-## Reading the JSON output
-
-```json
-{
-  "title": "...",
-  "authors": ["..."],
-  "tldr": "One-sentence summary, ≤ 40 words.",
-  "problem": "One paragraph.",
-  "approach": "One paragraph.",
-  "results": "One paragraph with numbers.",
-  "contributions": ["...", "..."],
-  "limitations": ["...", "..."],
-  "keywords": ["...", "..."],
-  "_paper_ref": "1706.03762",
-  "_usage": {
-    "input_tokens": 123,
-    "output_tokens": 456,
-    "cache_creation_input_tokens": 45678,
-    "cache_read_input_tokens": 0
-  }
-}
-```
-
-- **`_usage.cache_read_input_tokens > 0`** on a follow-up call means the paper
-  body was served from cache (~0.1× price). That's the expected behavior.
-- **`_usage.cache_creation_input_tokens` > 0 on the first call** is the write
-  premium (~1.25× for 5-minute TTL, 2× for 1-hour — we use 1-hour). Budget
-  for one write per paper per hour.
-
-## Gotchas
-
-- **Paper body is truncated to ~180k characters** (~45k tokens) before
-  sending. Very long papers (books, 100+ page surveys) get their tail cut.
-  If the user cares about the last section, ask them to pass the raw PDF
-  with `pdftotext` / `pdftk` pre-extraction or point at the specific section.
-- **Scanned PDFs extract no text.** `pypdf` does not do OCR. The CLI exits 3
-  with a clear error; tell the user and stop.
-- **Sonnet 4.6 minimum cacheable prefix is 2048 tokens.** Papers shorter
-  than ~10 KB (unusual — maybe a workshop abstract) will not cache; usage
-  will show `cache_creation_input_tokens: 0`. Not a bug.
-- **Cache is per-model.** Switching between `sonnet` and `opus` on the same
-  paper pays a fresh cache write on the other model.
-- **arXiv PDFs can hang** when arXiv is rate-limiting. The CLI will just
-  time out after 60s — if this happens, retry once, then fall back to a DOI
-  or direct URL if the user has one.
+- Never dump all nine fields verbatim unless the user asked for the raw
+  structured output. Extract the useful bits, don't flood.
+- Never invent numbers or claims the paper doesn't state. If something
+  isn't in the text, say so plainly instead of guessing.
+- Never claim the summary is "verified" or "fact-checked" — it's a read
+  of the paper, not a review.
+- Never retry on an empty extraction. Tell the user and stop.
+- Never summarize a login / paywall HTML page and present it as the
+  paper's content. If the fetch lands on one, say so.
 
 ## Composes with `paper-search`
 
-The `keywords[]` field returned in each summary is designed to feed back
-into `paper-search` as a second-pass query boost. If the user summarized
-≥ 2 papers from a prior `paper-search` run and asks for broader coverage,
-see **"Two-pass keyword-boosted search"** in `paper-search/SKILL.md` for
-the exact procedure. The gist: union the `keywords[]` from the summaries,
-drop terms already in the original query, cap at 4 new terms, re-run
-`paper-search` with the enriched query, and report only the new papers.
-
-## On-demand references
-
-- `references/api-details.md` — exact Claude API call shape (model IDs,
-  `cache_control` placement, `output_format` schema). **Read when** the user
-  asks about token costs, why cache hit rate is low, or wants to change the
-  system prompt.
-- `references/ingestion.md` — how each input type is resolved (arXiv bulk
-  endpoint, DOI → CrossRef → PDF link, raw URL, local PDF). **Read when** an
-  input consistently fails to extract or the user wants to add a new source.
+When the user has summarized ≥ 2 papers and wants broader coverage, the
+`keywords` lists you produced can seed a second-pass `paper-search`. See
+`paper-search/SKILL.md` → "Two-pass keyword-boosted search" for the exact
+procedure. The only contract this skill owes that loop is: each summary
+exposes a `keywords` list of 5–10 lowercase domain phrases.

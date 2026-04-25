@@ -211,11 +211,11 @@ These are properties of the tool, not rules for the agent:
 ## Two-pass keyword-boosted search (only if `paper-summarize` is available)
 
 **Precondition:** this pattern requires the `paper-summarize` skill to be
-installed in the same workspace. If `uv run paper-summarize --help` exits
-non-zero, skip this section and stop after the first search.
+loaded in the same session. If it isn't, skip this section and stop after
+the first search.
 
 When a user runs an initial search and then summarizes one or more of the
-top hits, the summaries expose a `keywords[]` field (5–10 domain-specific
+top hits, each summary exposes a `keywords` list (5–10 domain-specific
 phrases per paper). Those keywords frequently contain terms the user didn't
 think to include in the original query — re-running the search with them
 appended routinely surfaces papers the first pass missed.
@@ -223,14 +223,14 @@ appended routinely surfaces papers the first pass missed.
 Do this **only** when all of the following hold:
 
 1. The user has (or just) summarized ≥ 2 papers from the first search.
-2. The JSON summaries are in the current context (you have their
-   `keywords[]` arrays).
+2. The summaries are in the current context (you have their `keywords`
+   lists to draw from).
 
 ### Procedure
 
-1. **Collect keywords.** Union every paper's `keywords[]` from the
-   `paper-summarize` JSON outputs you have. Drop any that are already in
-   the first-pass query (case-insensitive substring match).
+1. **Collect keywords.** Union every paper's `keywords` list from the
+   `paper-summarize` outputs you have. Drop any that are already in the
+   first-pass query (case-insensitive substring match).
 2. **Cap at 5 new terms.** More than that dilutes the BM25 signal and
    starts outweighing the original query. Prefer terms that appear in ≥ 2
    summaries (signals cross-paper relevance), then by length (longer phrases
